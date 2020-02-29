@@ -41,8 +41,8 @@ extension SQLBenchmarker {
             .where {
                 $0.where("name", .equal, SQLBind("Milky Way"))
                     .orWhere("name", .equal, SQLBind("Andromeda"))
-            }
-            .all().wait()
+        }
+        .all().wait()
 
         _ = try self.db.select()
             .column("*")
@@ -51,12 +51,12 @@ extension SQLBenchmarker {
             .groupBy("id")
             .orderBy("name", .descending)
             .all().wait()
-        
+
         try self.db.insert(into: "planets")
             .columns("id", "name")
             .values(SQLLiteral.default, SQLBind("Earth"))
             .run().wait()
-        
+
         try self.db.insert(into: "planets")
             .columns("id", "name")
             .values(SQLLiteral.default, SQLBind("Mercury"))
@@ -71,21 +71,31 @@ extension SQLBenchmarker {
             .from("planets")
             .where("galaxyID", .equal, SQLBind(5))
             .run().wait()
-        
+
         try self.db.select()
             .column(SQLFunction("count", args: SQLLiteral.all))
             .from("planets")
             .where("galaxyID", .equal, SQLBind(5))
             .run().wait()
 
-        try self.db.select()
-            .column("*")
-            .from("planets")
-            .join(method: .inner,
-                  table: "galaxies",
-                  from: SQLColumn("galaxyID", table: "planets"),
-                  to: SQLColumn("id", table: "galaxies"))
-            .all().wait()
+        // add columns for the sake of testing adding columns
+        try self.db.alter(table: "planets")
+            .column("extra", type: .int)
+            .run().wait()
+
+        if self.db.dialect.alterTableSyntax.allowsBatch {
+            try self.db.alter(table: "planets")
+                .column("very_extra", type: .bigint)
+                .column("extra_extra", type: .text)
+                .run().wait()
+
+            // drop, add, and modify columns
+            try self.db.alter(table: "planets")
+                .dropColumn("extra_extra")
+                .update(column: "extra", type: .text)
+                .column("hi", type: .text)
+                .run().wait()
+        }
     }
 }
 
