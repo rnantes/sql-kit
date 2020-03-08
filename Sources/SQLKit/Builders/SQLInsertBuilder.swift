@@ -43,17 +43,20 @@ public final class SQLInsertBuilder: SQLQueryBuilder {
 
         for model in models {
             let row = try encoder.encode(model)
+
+            var columnNames = [String]()
             if self.insert.columns.isEmpty {
                 let columms = row.map {
                     $0.0
                 }.map {
                     SQLColumn($0, table: nil)
                 }
+                columnNames = row.map{$0.0}
                 self.insert.columns += columms
             } else {
                 assert(
                     self.insert.columns.count == row.count,
-                    "Column count (\(self.insert.columns.count)) did not equal value count (\(row.count)): \(model)."
+                    "Column count (\(self.insert.columns.count)) did not equal value count (\(row.count)). columns: \(columnNames) \n model: \(model)."
                 )
             }
             self.insert.values.append(.init(row.map { $0.1 }))
