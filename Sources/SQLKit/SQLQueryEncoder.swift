@@ -90,6 +90,8 @@ private final class _Encoder: Encoder {
             if let value = value as? SQLExpression {
                 self.encoder.row.append((self.column(for: key), value))
             } else {
+                print(key)
+                print(value)
                 self.encoder.row.append((self.column(for: key), SQLBind(value)))
             }
         }
