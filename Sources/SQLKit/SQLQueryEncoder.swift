@@ -96,6 +96,19 @@ private final class _Encoder: Encoder {
             }
         }
 
+        mutating func encode(_ value: Int, forKey key: Self.Key) throws {
+            print(key)
+            print(value)
+            if let value = value as? SQLExpression {
+                self.encoder.row.append((self.column(for: key), value))
+            } else {
+                print("keep null")
+                self.encoder.row.append((self.column(for: key), SQLLiteral.null))
+            }
+        }
+
+
+
         mutating func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type, forKey key: Key) -> KeyedEncodingContainer<NestedKey> where NestedKey : CodingKey {
             fatalError()
         }
