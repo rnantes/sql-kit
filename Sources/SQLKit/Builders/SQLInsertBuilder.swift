@@ -44,7 +44,8 @@ public final class SQLInsertBuilder: SQLQueryBuilder {
         for model in models {
             let row = try encoder.encode(model)
             if self.insert.columns.isEmpty {
-                self.insert.columns += row.map { $0.0 }.map { SQLColumn($0, table: nil) }
+                let columms = row.map { $0.0 }.map { SQLColumn($0, table: nil) }
+                self.insert.columns += columms
             } else {
                 assert(
                     self.insert.columns.count == row.count,
