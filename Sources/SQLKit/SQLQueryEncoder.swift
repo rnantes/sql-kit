@@ -109,8 +109,21 @@ private final class _Encoder: Encoder {
             }
         }
 
-        mutating func encodeIfPresent<T>(_ value: T?, forKey key: Self.Key) throws where T : Encodable {
+        mutating func encodeIfPresent<T>(_ value: T?, forKey key: Key) throws {
             print("encodeIfPresent T -----")
+            print(key)
+            print(value)
+            if let value = value {
+                print("do nothing")
+                return
+            } else {
+                print("keep nil")
+                self.encoder.row.append((self.column(for: key), SQLLiteral.null))
+            }
+        }
+
+        mutating func encodeIfPresent<T>(_ value: T?, forKey key: Key) throws where T : Encodable {
+            print("encodeIfPresent T Encodable -----")
             print(key)
             print(value)
             if let value = value {
