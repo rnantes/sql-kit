@@ -42,6 +42,7 @@ public final class SQLInsertBuilder: SQLQueryBuilder {
         encoder.prefix = prefix
 
         for model in models {
+            print("-----------------")
             let row = try encoder.encode(model)
 
             var columnNames = [String]()

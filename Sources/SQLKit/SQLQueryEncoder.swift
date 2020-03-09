@@ -83,6 +83,8 @@ private final class _Encoder: Encoder {
         }
 
         mutating func encodeNil(forKey key: Key) throws {
+            print("encodeNil")
+            print(key)
             self.encoder.row.append((self.column(for: key), SQLLiteral.null))
         }
 
@@ -97,12 +99,26 @@ private final class _Encoder: Encoder {
         }
 
         mutating func encode(_ value: Int, forKey key: Self.Key) throws {
+            print("encode int -----")
             print(key)
             print(value)
             if let value = value as? SQLExpression {
                 self.encoder.row.append((self.column(for: key), value))
             } else {
-                print("keep null")
+                self.encoder.row.append((self.column(for: key), SQLBind(value)))
+            }
+        }
+
+        mutating func encodeIfPresent(_ value: Int?, forKey key: Key) throws {
+            print("encodeIfPresent int? -----")
+            print(key)
+            print(value)
+            if let value = value as? SQLExpression {
+                self.encoder.row.append((self.column(for: key), value))
+            } else if value != nil{
+                self.encoder.row.append((self.column(for: key), SQLBind(value)))
+            } else {
+                print("keep nil")
                 self.encoder.row.append((self.column(for: key), SQLLiteral.null))
             }
         }
