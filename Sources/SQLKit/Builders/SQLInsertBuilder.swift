@@ -40,6 +40,7 @@ public final class SQLInsertBuilder: SQLQueryBuilder {
         var encoder = SQLQueryEncoder()
         encoder.keyEncodingStrategy = keyEncodingStrategy
         encoder.prefix = prefix
+        encoder.shouldEncodeOptionals = true
 
         for model in models {
             print("-----------------")
