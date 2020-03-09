@@ -98,7 +98,7 @@ private final class _Encoder: Encoder {
             }
         }
 
-        mutating func encode(_ value: Int, forKey key: Self.Key) throws {
+        mutating func encode(_ value: Int, forKey key: Key) throws {
             print("encode int -----")
             print(key)
             print(value)
@@ -109,21 +109,17 @@ private final class _Encoder: Encoder {
             }
         }
 
-        mutating func encodeIfPresent(_ value: Int?, forKey key: Key) throws {
-            print("encodeIfPresent int? -----")
+        mutating func encodeIfPresent<T>(_ value: T?, forKey key: Self.Key) throws where T : Encodable {
+            print("encodeIfPresent T -----")
             print(key)
             print(value)
-            if let value = value as? SQLExpression {
-                self.encoder.row.append((self.column(for: key), value))
-            } else if value != nil{
-                self.encoder.row.append((self.column(for: key), SQLBind(value)))
+            if let value = value {
+                try encode(value, forKey: key)
             } else {
                 print("keep nil")
                 self.encoder.row.append((self.column(for: key), SQLLiteral.null))
             }
         }
-
-
 
         mutating func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type, forKey key: Key) -> KeyedEncodingContainer<NestedKey> where NestedKey : CodingKey {
             fatalError()
