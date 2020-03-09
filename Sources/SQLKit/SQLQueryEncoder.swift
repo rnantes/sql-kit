@@ -1,6 +1,8 @@
 public struct SQLQueryEncoder {
     public var prefix: String? = nil
     public var keyEncodingStrategy: KeyEncodingStrategy = .useDefaultKeys
+    /// determines if optionals should be encoded and
+    public var shouldEncodeOptionals: Bool = false
 
     public init() { }
 
@@ -20,14 +22,22 @@ public struct SQLQueryEncoder {
         case custom(([CodingKey]) -> CodingKey)
     }
 
+    public enum OptionalEncodingStrategy {
+        /// A key encoding strategy that doesn't change key names during encoding.
+        case doNotEncodeOptionals
+        /// A key encoding strategy that converts camel-case keys to snake-case keys.
+        case encodeOptionals
+    }
+
     fileprivate struct _Options {
         let prefix: String?
         let keyEncodingStrategy: KeyEncodingStrategy
+        let shouldEncodeOptionals: Bool
     }
 
     /// The options set on the top-level decoder.
     fileprivate var options: _Options {
-        return _Options(prefix: prefix, keyEncodingStrategy: keyEncodingStrategy)
+        return _Options(prefix: prefix, keyEncodingStrategy: keyEncodingStrategy, shouldEncodeOptionals: shouldEncodeOptionals)
     }
 }
 
@@ -83,8 +93,6 @@ private final class _Encoder: Encoder {
         }
 
         mutating func encodeNil(forKey key: Key) throws {
-            print("encodeNil")
-            print(key)
             self.encoder.row.append((self.column(for: key), SQLLiteral.null))
         }
 
@@ -92,32 +100,7 @@ private final class _Encoder: Encoder {
             if let value = value as? SQLExpression {
                 self.encoder.row.append((self.column(for: key), value))
             } else {
-                print(key)
-                print(value)
                 self.encoder.row.append((self.column(for: key), SQLBind(value)))
-            }
-        }
-
-        mutating func encode(_ value: Int, forKey key: Key) throws {
-            print("encode int -----")
-            print(key)
-            print(value)
-            if let value = value as? SQLExpression {
-                self.encoder.row.append((self.column(for: key), value))
-            } else {
-                self.encoder.row.append((self.column(for: key), SQLBind(value)))
-            }
-        }
-
-        mutating func encodeIfPresent<T>(_ value: T?, forKey key: Self.Key) throws where T : Encodable {
-            print("encodeIfPresent T Encodable -----")
-            print(key)
-            print(value)
-            if let value = value {
-                try encode(value, forKey: key)
-            } else {
-                print("keep nil")
-                self.encoder.row.append((self.column(for: key), SQLLiteral.null))
             }
         }
 
@@ -147,13 +130,16 @@ private final class _Encoder: Encoder {
     }
 }
 
+
+/// encodeIfPresent(: forKey:) is only hit on the functionals non-generic optional values, thus these methods are required
 private extension _Encoder._KeyedEncoder {
     mutating func encodeIfPresentBase<T>(_ value: T?, forKey key: Self.Key) throws where T : Encodable {
         if let value = value {
             try encode(value, forKey: key)
         } else {
-            print("keep nil")
-            self.encoder.row.append((self.column(for: key), SQLLiteral.null))
+            if self.encoder.options.shouldEncodeOptionals {
+                self.encoder.row.append((self.column(for: key), SQLLiteral.null))
+            }
         }
     }
 
