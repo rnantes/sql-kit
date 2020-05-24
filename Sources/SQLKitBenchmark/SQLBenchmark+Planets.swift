@@ -41,8 +41,8 @@ extension SQLBenchmarker {
             .where {
                 $0.where("name", .equal, SQLBind("Milky Way"))
                     .orWhere("name", .equal, SQLBind("Andromeda"))
-            }
-            .all().wait()
+        }
+        .all().wait()
 
         _ = try self.db.select()
             .column("*")
@@ -51,12 +51,12 @@ extension SQLBenchmarker {
             .groupBy("id")
             .orderBy("name", .descending)
             .all().wait()
-        
+
         try self.db.insert(into: "planets")
             .columns("id", "name")
             .values(SQLLiteral.default, SQLBind("Earth"))
             .run().wait()
-        
+
         try self.db.insert(into: "planets")
             .columns("id", "name")
             .values(SQLLiteral.default, SQLBind("Mercury"))
@@ -71,7 +71,7 @@ extension SQLBenchmarker {
             .from("planets")
             .where("galaxyID", .equal, SQLBind(5))
             .run().wait()
-        
+
         try self.db.select()
             .column(SQLFunction("count", args: SQLLiteral.all))
             .from("planets")
