@@ -138,7 +138,7 @@ private extension _Encoder._KeyedEncoder {
             try encode(value, forKey: key)
         } else {
             if self.encoder.options.shouldEncodeOptionals {
-                self.encoder.row.append((self.column(for: key), SQLLiteral.null))
+                self.encoder.row.append((self.column(for: key), SQLLiteral.default))
             }
         }
     }
