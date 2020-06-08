@@ -130,7 +130,6 @@ private final class _Encoder: Encoder {
     }
 }
 
-
 /// encodeIfPresent(: forKey:) is only hit on the functionals non-generic optional values, thus these methods are required
 private extension _Encoder._KeyedEncoder {
     mutating func encodeIfPresentBase<T>(_ value: T?, forKey key: Self.Key) throws where T : Encodable {

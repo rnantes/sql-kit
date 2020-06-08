@@ -1,6 +1,6 @@
 /// Builds `SQLInsert` queries.
 ///
-///     conn.insert(into: "planets"")
+///     db.insert(into: "planets"")
 ///         .value(earth).run()
 ///
 /// See `SQLQueryBuilder` for more information.
@@ -25,7 +25,7 @@ public final class SQLInsertBuilder: SQLQueryBuilder {
     /// Adds a single encodable value to be inserted. Equivalent to calling `values(_:)`
     /// with single-element array.
     ///
-    ///     conn.insert(into: Planet.self)
+    ///     db.insert(into: Planet.self)
     ///         .value(earth).run()
     ///
     /// - parameters:
@@ -67,12 +67,12 @@ public final class SQLInsertBuilder: SQLQueryBuilder {
     }
     
     public func columns(_ columns: String...) -> Self {
-        self.insert.columns = columns.map(SQLIdentifier.init)
+        self.insert.columns = columns.map(SQLIdentifier.init(_:))
         return self
     }
     
     public func columns(_ columns: [String]) -> Self {
-        self.insert.columns = columns.map(SQLIdentifier.init)
+        self.insert.columns = columns.map(SQLIdentifier.init(_:))
         return self
     }
 
@@ -114,7 +114,7 @@ public final class SQLInsertBuilder: SQLQueryBuilder {
 extension SQLDatabase {
     /// Creates a new `SQLInsertBuilder`.
     ///
-    ///     conn.insert(into: "planets")...
+    ///     db.insert(into: "planets")...
     ///
     /// - parameters:
     ///     - table: Table to insert into.
@@ -125,7 +125,7 @@ extension SQLDatabase {
     
     /// Creates a new `SQLInsertBuilder`.
     ///
-    ///     conn.insert(into: "planets")...
+    ///     db.insert(into: "planets")...
     ///
     /// - parameters:
     ///     - table: Table to insert into.

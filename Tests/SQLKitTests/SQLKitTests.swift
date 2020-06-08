@@ -14,6 +14,29 @@ final class SQLKitTests: XCTestCase {
         let benchmarker = SQLBenchmarker(on: db)
         try benchmarker.run()
     }
+
+    func testSelect_whereIn() throws {
+        try db.select().column("*")
+            .from("planets")
+            .where("name", .in, ["Earth", "Mars"])
+            .run().wait()
+        XCTAssertEqual(db.results[0], "SELECT * FROM `planets` WHERE `name` IN (?, ?)")
+    }
+
+    func testUpdate() throws {
+        try db.update("planets")
+            .where("name", .equal, "Jpuiter")
+            .set("name", to: "Jupiter")
+            .run().wait()
+        XCTAssertEqual(db.results[0], "UPDATE `planets` SET `name` = ? WHERE `name` = ?")
+    }
+
+    func testDelete() throws {
+        try db.delete(from: "planets")
+            .where("name", .equal, "Jupiter")
+            .run().wait()
+        XCTAssertEqual(db.results[0], "DELETE FROM `planets` WHERE `name` = ?")
+    }
     
     func testLockingClause_forUpdate() throws {
         try db.select().column("*")
@@ -258,6 +281,14 @@ extension SQLKitTests {
 CREATE TABLE `planets`(`id` BIGINT PRIMARY KEY AUTOINCREMENT, `name` TEXT DEFAULT 'unnamed', `galaxy_id` BIGINT REFERENCES `galaxies` (`id`), `diameter` INTEGER CHECK (diameter > 0), `important` TEXT NOT NULL, `special` TEXT UNIQUE, `automatic` TEXT GENERATED ALWAYS AS (CONCAT(name, special)) STORED, `collated` TEXT COLLATE `default`)
 """
                        )
+    }
+    
+    func testConstraintLengthNormalization() {
+        // Default impl is to leave as-is
+        XCTAssertEqual(
+            (db.dialect.normalizeSQLConstraint(identifier: SQLIdentifier("fk:obnoxiously_long_table_name.other_table_name_id+other_table_name.id")) as! SQLIdentifier).string,
+            SQLIdentifier("fk:obnoxiously_long_table_name.other_table_name_id+other_table_name.id").string
+        )
     }
 
     func testMultipleColumnConstraintsPerRow() throws {
