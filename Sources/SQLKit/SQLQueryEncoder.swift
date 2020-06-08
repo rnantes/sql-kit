@@ -23,9 +23,9 @@ public struct SQLQueryEncoder {
     }
 
     public enum OptionalEncodingStrategy {
-        /// A key encoding strategy that doesn't change key names during encoding.
+        // ignore optional values in encode
         case doNotEncodeOptionals
-        /// A key encoding strategy that converts camel-case keys to snake-case keys.
+        /// encode optional values as default in encode
         case encodeOptionals
     }
 
