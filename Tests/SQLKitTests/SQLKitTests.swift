@@ -56,33 +56,6 @@ final class SQLKitTests: XCTestCase {
         XCTAssertEqual(db.results[0], "SELECT * FROM `planets` WHERE `name` = ? LOCK IN SHARE MODE")
     }
     
-    func testRawQueryStringInterpolation() throws {
-        let (table, planet) = ("planets", "Earth")
-        let builder = db.raw("SELECT * FROM \(table) WHERE name = \(bind: planet)")
-        var serializer = SQLSerializer(database: db)
-        builder.query.serialize(to: &serializer)
-
-        XCTAssertEqual(serializer.sql, "SELECT * FROM planets WHERE name = ?")
-        XCTAssert(serializer.binds.first! as! String == "Earth")
-    }
-    
-    func testRawQueryStringWithNonliteral() throws {
-        let db = TestDatabase()
-        let (table, planet) = ("planets", "Earth")
-
-        var serializer1 = SQLSerializer(database: db)
-        let query1 = "SELECT * FROM \(table) WHERE name = \(planet)"
-        let builder1 = db.raw(.init(query1))
-        builder1.query.serialize(to: &serializer1)
-        XCTAssertEqual(serializer1.sql, "SELECT * FROM planets WHERE name = Earth")
-
-        var serializer2 = SQLSerializer(database: db)
-        let query2: Substring = "|||SELECT * FROM staticTable WHERE name = uselessUnboundValue|||".dropFirst(3).dropLast(3)
-        let builder2 = db.raw(.init(query2))
-        builder2.query.serialize(to: &serializer2)
-        XCTAssertEqual(serializer2.sql, "SELECT * FROM staticTable WHERE name = uselessUnboundValue")
-    }
-
     func testGroupByHaving() throws {
         try db.select().column("*")
             .from("planets")
@@ -96,49 +69,83 @@ final class SQLKitTests: XCTestCase {
         try db.drop(table: "planets").ifExists().run().wait()
         XCTAssertEqual(db.results[0], "DROP TABLE IF EXISTS `planets`")
 
+        try db.drop(index: "planets_name_idx").ifExists().run().wait()
+        XCTAssertEqual(db.results[1], "DROP INDEX IF EXISTS `planets_name_idx`")
+
         db._dialect.supportsIfExists = false
+        
         try db.drop(table: "planets").ifExists().run().wait()
-        XCTAssertEqual(db.results[1], "DROP TABLE `planets`")
+        XCTAssertEqual(db.results[2], "DROP TABLE `planets`")
+
+        try db.drop(index: "planets_name_idx").ifExists().run().wait()
+        XCTAssertEqual(db.results[3], "DROP INDEX `planets_name_idx`")
     }
 
     func testDropBehavior() throws {
-        let db = TestDatabase()
-
         try db.drop(table: "planets").run().wait()
         XCTAssertEqual(db.results[0], "DROP TABLE `planets`")
 
-        try db.drop(table: "planets").behavior(.cascade).run().wait()
-        XCTAssertEqual(db.results[1], "DROP TABLE `planets`")
+        try db.drop(index: "planets_name_idx").run().wait()
+        XCTAssertEqual(db.results[1], "DROP INDEX `planets_name_idx`")
 
-        try db.drop(table: "planets").behavior(.restrict).run().wait()
+        try db.drop(table: "planets").behavior(.cascade).run().wait()
         XCTAssertEqual(db.results[2], "DROP TABLE `planets`")
 
-        try db.drop(table: "planets").cascade().run().wait()
-        XCTAssertEqual(db.results[3], "DROP TABLE `planets`")
-
-        try db.drop(table: "planets").restrict().run().wait()
-        XCTAssertEqual(db.results[4], "DROP TABLE `planets`")
-
-        db._dialect.supportsDropBehavior = true
-        try db.drop(table: "planets").run().wait()
-        XCTAssertEqual(db.results[5], "DROP TABLE `planets` RESTRICT")
-
-        try db.drop(table: "planets").behavior(.cascade).run().wait()
-        XCTAssertEqual(db.results[6], "DROP TABLE `planets` CASCADE")
+        try db.drop(index: "planets_name_idx").behavior(.cascade).run().wait()
+        XCTAssertEqual(db.results[3], "DROP INDEX `planets_name_idx`")
 
         try db.drop(table: "planets").behavior(.restrict).run().wait()
-        XCTAssertEqual(db.results[7], "DROP TABLE `planets` RESTRICT")
+        XCTAssertEqual(db.results[4], "DROP TABLE `planets`")
+
+        try db.drop(index: "planets_name_idx").behavior(.restrict).run().wait()
+        XCTAssertEqual(db.results[5], "DROP INDEX `planets_name_idx`")
 
         try db.drop(table: "planets").cascade().run().wait()
-        XCTAssertEqual(db.results[8], "DROP TABLE `planets` CASCADE")
+        XCTAssertEqual(db.results[6], "DROP TABLE `planets`")
+
+        try db.drop(index: "planets_name_idx").cascade().run().wait()
+        XCTAssertEqual(db.results[7], "DROP INDEX `planets_name_idx`")
 
         try db.drop(table: "planets").restrict().run().wait()
-        XCTAssertEqual(db.results[9], "DROP TABLE `planets` RESTRICT")
+        XCTAssertEqual(db.results[8], "DROP TABLE `planets`")
+
+        try db.drop(index: "planets_name_idx").restrict().run().wait()
+        XCTAssertEqual(db.results[9], "DROP INDEX `planets_name_idx`")
+
+        db._dialect.supportsDropBehavior = true
+        
+        try db.drop(table: "planets").run().wait()
+        XCTAssertEqual(db.results[10], "DROP TABLE `planets` RESTRICT")
+
+        try db.drop(index: "planets_name_idx").run().wait()
+        XCTAssertEqual(db.results[11], "DROP INDEX `planets_name_idx` RESTRICT")
+
+        try db.drop(table: "planets").behavior(.cascade).run().wait()
+        XCTAssertEqual(db.results[12], "DROP TABLE `planets` CASCADE")
+
+        try db.drop(index: "planets_name_idx").behavior(.cascade).run().wait()
+        XCTAssertEqual(db.results[13], "DROP INDEX `planets_name_idx` CASCADE")
+
+        try db.drop(table: "planets").behavior(.restrict).run().wait()
+        XCTAssertEqual(db.results[14], "DROP TABLE `planets` RESTRICT")
+
+        try db.drop(index: "planets_name_idx").behavior(.restrict).run().wait()
+        XCTAssertEqual(db.results[15], "DROP INDEX `planets_name_idx` RESTRICT")
+
+        try db.drop(table: "planets").cascade().run().wait()
+        XCTAssertEqual(db.results[16], "DROP TABLE `planets` CASCADE")
+
+        try db.drop(index: "planets_name_idx").cascade().run().wait()
+        XCTAssertEqual(db.results[17], "DROP INDEX `planets_name_idx` CASCADE")
+
+        try db.drop(table: "planets").restrict().run().wait()
+        XCTAssertEqual(db.results[18], "DROP TABLE `planets` RESTRICT")
+
+        try db.drop(index: "planets_name_idx").restrict().run().wait()
+        XCTAssertEqual(db.results[19], "DROP INDEX `planets_name_idx` RESTRICT")
     }
 
     func testAltering() throws {
-        let db = TestDatabase()
-
         // SINGLE
         try db.alter(table: "alterable")
             .column("hello", type: .text)
@@ -184,7 +191,6 @@ final class SQLKitTests: XCTestCase {
     }
     
     func testDistinct() throws {
-        let db = TestDatabase()
         try db.select().column("*")
             .from("planets")
             .groupBy("color")
@@ -195,7 +201,6 @@ final class SQLKitTests: XCTestCase {
     }
     
     func testDistinctColumns() throws {
-        let db = TestDatabase()
         try db.select()
             .distinct(on: "name", "color")
             .from("planets")
@@ -204,7 +209,6 @@ final class SQLKitTests: XCTestCase {
     }
     
     func testDistinctExpression() throws {
-        let db = TestDatabase()
         try db.select()
             .column(SQLFunction("COUNT", args: SQLDistinct("name", "color")))
             .from("planets")
@@ -213,8 +217,6 @@ final class SQLKitTests: XCTestCase {
     }
     
     func testSimpleJoin() throws {
-        let db = TestDatabase()
-        
         try db.select().column("*")
             .from("planets")
             .join("moons", on: "moons.planet_id=planets.id")
@@ -224,8 +226,6 @@ final class SQLKitTests: XCTestCase {
     }
     
     func testMessyJoin() throws {
-        let db = TestDatabase()
-        
         try db.select().column("*")
             .from("planets")
             .join(
@@ -243,8 +243,6 @@ final class SQLKitTests: XCTestCase {
     }
     
     func testBinaryOperators() throws {
-        let db = TestDatabase()
-        
         try db
             .update("planets")
             .set(SQLIdentifier("moons"),
@@ -259,11 +257,38 @@ final class SQLKitTests: XCTestCase {
         
         XCTAssertEqual(db.results[0], "UPDATE `planets` SET `moons` = `moons` + 1 WHERE `best_at_space` >= ?")
     }
-}
 
-// MARK: Table Creation
+    func testReturning() throws {
+        let db = TestDatabase()
 
-extension SQLKitTests {
+        try db.insert(into: "planets")
+            .columns("name")
+            .values("Jupiter")
+            .returning("id", "name")
+            .run().wait()
+        XCTAssertEqual(db.results[0], "INSERT INTO `planets` (`name`) VALUES (?) RETURNING `id`, `name`")
+
+        _ = try db.update("planets")
+            .set("name", to: "Jupiter")
+            .returning(SQLColumn("name", table: "planets"))
+            .first().wait()
+        XCTAssertEqual(db.results[1], "UPDATE `planets` SET `name` = ? RETURNING `planets`.`name`")
+
+        _ = try db.delete(from: "planets")
+            .returning("*")
+            .all().wait()
+        XCTAssertEqual(db.results[2], "DELETE FROM `planets` RETURNING *")
+    }
+
+    func testRawCustomStringConvertible() throws {
+        let field = "name"
+        let db = TestDatabase()
+        _ = try db.raw("SELECT \(raw: field) FROM users").all().wait()
+        XCTAssertEqual(db.results[0], "SELECT name FROM users")
+    }
+
+    // MARK: Table Creation
+
     func testColumnConstraints() throws {
         try db.create(table: "planets")
             .column("id", type: .bigint, .primaryKey)
@@ -314,8 +339,6 @@ CREATE TABLE `planets`(`id` BIGINT PRIMARY KEY AUTOINCREMENT, `name` TEXT DEFAUL
     }
 
     func testPrimaryKeyAutoIncrementVariants() throws {
-        let db = TestDatabase()
-
         db._dialect.supportsAutoIncrement = false
 
         try db.create(table: "planets1")
