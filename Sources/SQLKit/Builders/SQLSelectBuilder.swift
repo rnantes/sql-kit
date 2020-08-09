@@ -80,6 +80,11 @@ extension SQLSelectBuilder {
         self.select.columns = columns
         return self
     }
+
+    public func postDistinctExpression(_ expression: SQLExpression...) -> Self {
+        self.select.postDistinctExpression = expression
+        return self
+    }
 }
 
 // MARK: Columns

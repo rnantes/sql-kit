@@ -6,6 +6,8 @@ public struct SQLSelect: SQLExpression {
     public var tables: [SQLExpression]
     
     public var isDistinct: Bool
+
+    public var postDistinctExpression: [SQLExpression]
     
     public var joins: [SQLExpression]
     
@@ -37,6 +39,7 @@ public struct SQLSelect: SQLExpression {
         self.columns = []
         self.tables = []
         self.isDistinct = false
+        self.postDistinctExpression = []
         self.joins = []
         self.predicate = nil
         self.limit = nil
@@ -50,6 +53,8 @@ public struct SQLSelect: SQLExpression {
         serializer.write("SELECT ")
         if self.isDistinct {
             serializer.write("DISTINCT ")
+
+            SQLList(self.postDistinctExpression).serialize(to: &serializer)
         }
         SQLList(self.columns).serialize(to: &serializer)
         serializer.write(" FROM ")
