@@ -20,7 +20,7 @@
 
 Build SQL queries in Swift. Extensible, protocol-based design that supports DQL, DML, and DDL.
 
-### Major Releases
+### Major Releasesz
 
 The table below shows a list of SQLKit major releases alongside their compatible NIO and Swift versions. 
 
