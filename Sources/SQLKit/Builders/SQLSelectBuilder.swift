@@ -53,6 +53,7 @@ extension SQLSelectBuilder {
     ///     builder.distinct()
     ///
     /// - returns: Self for chaining
+    @discardableResult
     public func distinct() -> Self {
         self.select.isDistinct = true
         return self
@@ -63,6 +64,7 @@ extension SQLSelectBuilder {
     ///     builder.distinct(on: "my_collumn")
     ///
     /// - returns: Self for chaining
+    @discardableResult
     public func distinct(on columns: String...) -> Self {
         self.select.isDistinct = true
         self.select.columns = []
@@ -75,6 +77,7 @@ extension SQLSelectBuilder {
     ///     builder.distinct(on: SQLRaw("my_collumn"))
     ///
     /// - returns: Self for chaining
+    @discardableResult
     public func distinct(on columns: SQLExpression...) -> Self {
         self.select.isDistinct = true
         self.select.columns = columns
@@ -96,6 +99,7 @@ extension SQLSelectBuilder {
     /// `SQLLiteral.all`.
     ///
     /// - Parameter column: The name of the column to return, or "*" for all.
+    @discardableResult
     public func column(_ column: String) -> Self {
         if column == "*" {
             return self.column(SQLLiteral.all)
@@ -111,6 +115,7 @@ extension SQLSelectBuilder {
     /// - Parameters:
     ///   - table: The name of a table to qualify the column name.
     ///   - column: The name of the column to return.
+    @discardableResult
     public func column(table: String, column: String) -> Self {
         return self.column(SQLColumn(SQLIdentifier(column), table: SQLIdentifier(table)))
     }
@@ -119,6 +124,7 @@ extension SQLSelectBuilder {
     /// is an arbitrary expression.
     ///
     /// - Parameter expr: An expression identifying the desired data to return.
+    @discardableResult
     public func column(_ expr: SQLExpression) -> Self {
         self.select.columns.append(expr)
         return self
@@ -130,6 +136,7 @@ extension SQLSelectBuilder {
     /// `SQLLiteral.all`.
     ///
     /// - Parameter columns: The names of the columns to return.
+    @discardableResult
     public func columns(_ columns: String...) -> Self {
         return columns.reduce(self) { $0.column($1) }
     }
@@ -140,6 +147,7 @@ extension SQLSelectBuilder {
     /// `SQLLiteral.all`.
     ///
     /// - Parameter columns: The names of the columns to return.
+    @discardableResult
     public func columns(_ columns: [String]) -> Self {
         return columns.reduce(self) { $0.column($1) }
     }
@@ -149,6 +157,7 @@ extension SQLSelectBuilder {
     ///
     /// - Parameter columns: A list of expressions identifying the desired data
     ///                      to return.
+    @discardableResult
     public func columns(_ columns: SQLExpression...) -> Self {
         return self.columns(columns)
     }
@@ -158,6 +167,7 @@ extension SQLSelectBuilder {
     ///
     /// - Parameter columns: A list of expressions identifying the desired data
     ///                      to return.
+    @discardableResult
     public func columns(_ columns: [SQLExpression]) -> Self {
         return columns.reduce(self) { $0.column($1) }
     }
@@ -172,6 +182,7 @@ extension SQLSelectBuilder {
     /// be a valid SQL identifier.
     ///
     /// - Parameter table: The name of the table to use.
+    @discardableResult
     public func from(_ table: String) -> Self {
         return self.from(SQLIdentifier(table))
     }
@@ -181,6 +192,7 @@ extension SQLSelectBuilder {
     ///
     /// - Parameters:
     ///   - table: An expression identifying the table to use.
+    @discardableResult
     public func from(_ table: SQLExpression) -> Self {
         self.select.tables.append(table)
         return self
@@ -194,6 +206,7 @@ extension SQLSelectBuilder {
     /// - Parameters:
     ///   - table: The name of the table to use.
     ///   - alias: The alias to use for the table.
+    @discardableResult
     public func from(_ table: String, as alias: String) -> Self {
         return self.from(SQLIdentifier(table), as: SQLIdentifier(alias))
     }
@@ -205,6 +218,7 @@ extension SQLSelectBuilder {
     /// - Parameters:
     ///   - table: An expression identifying the table to use.
     ///   - alias: An expression providing the alias to use for the table.
+    @discardableResult
     public func from(_ table: SQLExpression, as alias: SQLExpression) -> Self {
         return self.from(SQLAlias(table, as: alias))
     }
@@ -227,6 +241,7 @@ extension SQLSelectBuilder {
     ///     - op: Binary operator to use for comparison.
     ///     - rhs: Right-hand side column name.
     /// - returns: Self for chaining.
+    @discardableResult
     public func having(_ lhs: String, _ op: SQLBinaryOperator, column rhs: String) -> Self {
         return self.having(SQLIdentifier(lhs), op, SQLIdentifier(rhs))
     }
@@ -244,6 +259,7 @@ extension SQLSelectBuilder {
     ///     - op: Binary operator to use for comparison.
     ///     - rhs: Encodable value.
     /// - returns: Self for chaining.
+    @discardableResult
     public func having(_ lhs: String, _ op: SQLBinaryOperator, _ rhs: Encodable) -> Self {
         return self.having(SQLIdentifier(lhs), op, SQLBind(rhs))
     }
@@ -257,6 +273,7 @@ extension SQLSelectBuilder {
     ///     - op: Binary operator to use for comparison.
     ///     - rhs: Right-hand side expression.
     /// - returns: Self for chaining.
+    @discardableResult
     public func having(_ lhs: String, _ op: SQLBinaryOperator, _ rhs: SQLExpression) -> Self {
         return self.having(SQLIdentifier(lhs), op, rhs)
     }
@@ -270,6 +287,7 @@ extension SQLSelectBuilder {
     ///     - op: Binary operator to use for comparison.
     ///     - rhs: Right-hand side expression.
     /// - returns: Self for chaining.
+    @discardableResult
     public func having(_ lhs: SQLExpression, _ op: SQLBinaryOperator, _ rhs: SQLExpression) -> Self {
         return self.having(SQLBinaryExpression(left: lhs, op: op, right: rhs))
     }
@@ -284,6 +302,7 @@ extension SQLSelectBuilder {
     ///     - op: Binary operator to use for comparison.
     ///     - rhs: Right-hand side expression.
     /// - returns: Self for chaining.
+    @discardableResult
     public func having(_ lhs: SQLExpression, _ op: SQLExpression, _ rhs: SQLExpression) -> Self {
         return self.having(SQLBinaryExpression(left: lhs, op: op, right: rhs))
     }
@@ -294,6 +313,7 @@ extension SQLSelectBuilder {
     ///
     /// - parameters:
     ///     - expression: Expression to be added to the predicate.
+    @discardableResult
     public func having(_ expression: SQLExpression) -> Self {
         if let existing = self.select.having {
             self.select.having = SQLBinaryExpression(
@@ -316,6 +336,7 @@ extension SQLSelectBuilder {
     ///     - op: Binary operator to use for comparison.
     ///     - rhs: Right-hand side expression.
     /// - returns: Self for chaining.
+    @discardableResult
     public func orHaving(_ lhs: String, _ op: SQLBinaryOperator, _ rhs: SQLExpression) -> Self {
         return self.orHaving(SQLIdentifier(lhs), op, rhs)
     }
@@ -329,6 +350,7 @@ extension SQLSelectBuilder {
     ///     - op: Binary operator to use for comparison.
     ///     - rhs: Right-hand side expression.
     /// - returns: Self for chaining.
+    @discardableResult
     public func orHaving(_ lhs: SQLExpression, _ op: SQLBinaryOperator, _ rhs: SQLExpression) -> Self {
         return self.orHaving(SQLBinaryExpression(left: lhs, op: op, right: rhs))
     }
@@ -343,6 +365,7 @@ extension SQLSelectBuilder {
     ///     - op: Binary operator to use for comparison.
     ///     - rhs: Right-hand side expression.
     /// - returns: Self for chaining.
+    @discardableResult
     public func orHaving(_ lhs: SQLExpression, _ op: SQLExpression, _ rhs: SQLExpression) -> Self {
         return self.orHaving(SQLBinaryExpression(left: lhs, op: op, right: rhs))
     }
@@ -353,6 +376,7 @@ extension SQLSelectBuilder {
     ///
     /// - parameters:
     ///     - expression: Expression to be added to the predicate.
+    @discardableResult
     public func orHaving(_ expression: SQLExpression) -> Self {
         if let existing = self.select.having {
             self.select.having = SQLBinaryExpression(
@@ -378,6 +402,7 @@ extension SQLSelectBuilder {
     ///     - max: Optional maximum limit.
     ///            If `nil`, existing limit will be removed.
     /// - returns: Self for chaining.
+    @discardableResult
     public func limit(_ max: Int?) -> Self {
         self.select.limit = max
         return self
@@ -391,6 +416,7 @@ extension SQLSelectBuilder {
     ///     - max: Optional offset.
     ///            If `nil`, existing offset will be removed.
     /// - returns: Self for chaining.
+    @discardableResult
     public func offset(_ n: Int?) -> Self {
         self.select.offset = n
         return self
@@ -405,6 +431,7 @@ extension SQLSelectBuilder {
     /// - parameters:
     ///     - expression: `SQLExpression` to group by.
     /// - returns: Self for chaining.
+    @discardableResult
     public func groupBy(_ column: String) -> Self {
         return self.groupBy(SQLColumn(column))
     }
@@ -414,6 +441,7 @@ extension SQLSelectBuilder {
     /// - parameters:
     ///     - expression: `SQLExpression` to group by.
     /// - returns: Self for chaining.
+    @discardableResult
     public func groupBy(_ expression: SQLExpression) -> Self {
         self.select.groupBy.append(expression)
         return self
@@ -424,6 +452,7 @@ extension SQLSelectBuilder {
     /// - parameters:
     ///     - expression: `SQLExpression` to order by.
     /// - returns: Self for chaining.
+    @discardableResult
     public func orderBy(_ column: String, _ direction: SQLDirection = .ascending) -> Self {
         return self.orderBy(SQLColumn(column), direction)
     }
@@ -434,6 +463,7 @@ extension SQLSelectBuilder {
     /// - parameters:
     ///     - expression: `SQLExpression` to order by.
     /// - returns: Self for chaining.
+    @discardableResult
     public func orderBy(_ expression: SQLExpression, _ direction: SQLExpression) -> Self {
         return self.orderBy(SQLOrderBy(expression: expression, direction: direction))
     }
@@ -443,6 +473,7 @@ extension SQLSelectBuilder {
     /// - parameters:
     ///     - expression: `SQLExpression` to order by.
     /// - returns: Self for chaining.
+    @discardableResult
     public func orderBy(_ expression: SQLExpression) -> Self {
         select.orderBy.append(expression)
         return self
@@ -464,6 +495,7 @@ extension SQLSelectBuilder {
     /// - parameters:
     ///     - lockingClause: Locking clause type.
     /// - returns: Self for chaining.
+    @discardableResult
     public func `for`(_ lockingClause: SQLLockingClause) -> Self {
         return self.lockingClause(lockingClause)
     }
@@ -482,6 +514,7 @@ extension SQLSelectBuilder {
     /// - parameters:
     ///     - lockingClause: Locking clause type.
     /// - returns: Self for chaining.
+    @discardableResult
     public func lockingClause(_ lockingClause: SQLExpression) -> Self {
         self.select.lockingClause = lockingClause
         return self

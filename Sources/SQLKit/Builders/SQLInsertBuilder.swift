@@ -36,16 +36,17 @@ public final class SQLInsertBuilder: SQLQueryBuilder, SQLReturningBuilder {
     /// - parameters:
     ///     - value: `Encodable` value to insert.
     /// - returns: Self for chaining.
-    public func model<E>(_ model: E, prefix: String? = nil, keyEncodingStrategy: SQLQueryEncoder.KeyEncodingStrategy = .useDefaultKeys) throws -> Self
+    @discardableResult
+    public func model<E>(_ model: E, prefix: String? = nil, keyEncodingStrategy: SQLQueryEncoder.KeyEncodingStrategy = .useDefaultKeys, nilEncodingStrategy: SQLQueryEncoder.NilEncodingStrategy = .default) throws -> Self
         where E: Encodable {
             return try models([model], prefix: prefix, keyEncodingStrategy: keyEncodingStrategy)
     }
-
-    public func models<E>(_ models: [E], prefix: String? = nil, keyEncodingStrategy: SQLQueryEncoder.KeyEncodingStrategy = .useDefaultKeys) throws -> Self where E: Encodable {
+    
+    @discardableResult
+    public func models<E>(_ models: [E], prefix: String? = nil, keyEncodingStrategy: SQLQueryEncoder.KeyEncodingStrategy = .useDefaultKeys, nilEncodingStrategy: SQLQueryEncoder.NilEncodingStrategy = .default) throws -> Self where E: Encodable {
         var encoder = SQLQueryEncoder()
         encoder.keyEncodingStrategy = keyEncodingStrategy
         encoder.prefix = prefix
-        encoder.shouldEncodeOptionals = true
 
         for model in models {
             let row = try encoder.encode(model)
@@ -71,43 +72,51 @@ public final class SQLInsertBuilder: SQLQueryBuilder, SQLReturningBuilder {
         return self
     }
     
+    @discardableResult
     public func columns(_ columns: String...) -> Self {
         self.insert.columns = columns.map(SQLIdentifier.init(_:))
         return self
     }
     
+    @discardableResult
     public func columns(_ columns: [String]) -> Self {
         self.insert.columns = columns.map(SQLIdentifier.init(_:))
         return self
     }
-
+    
+    @discardableResult
     public func columns(_ columns: SQLExpression...) -> Self {
         self.insert.columns = columns
         return self
     }
     
+    @discardableResult
     public func columns(_ columns: [SQLExpression]) -> Self {
         self.insert.columns = columns
         return self
     }
     
+    @discardableResult
     public func values(_ values: Encodable...) -> Self {
         let row: [SQLExpression] = values.map(SQLBind.init)
         self.insert.values.append(row)
         return self
     }
     
+    @discardableResult
     public func values(_ values: [Encodable]) -> Self {
         let row: [SQLExpression] = values.map(SQLBind.init)
         self.insert.values.append(row)
         return self
     }
     
+    @discardableResult
     public func values(_ values: SQLExpression...) -> Self {
         self.insert.values.append(values)
         return self
     }
-
+    
+    @discardableResult
     public func values(_ values: [SQLExpression]) -> Self {
         self.insert.values.append(values)
         return self

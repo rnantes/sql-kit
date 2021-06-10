@@ -30,7 +30,7 @@ The table below shows a list of SQLKit major releases alongside their compatible
 |2.0|1.0+|4.0+|`from: "2.0.0"`|
 |1.0|n/a|4.0+|`from: "1.0.0"`|
 
-Use the SPM string to easily include the dependendency in your `Package.swift` file.
+Use the SPM string to easily include the dependency in your `Package.swift` file.
 
 ```swift
 .package(url: "https://github.com/vapor/sql-kit.git", from: ...)
@@ -258,7 +258,7 @@ The `raw(_:)` method allows for passing custom SQL query strings with support fo
 
 ```swift
 let table = "planets"
-let planets = try db.raw("SELECT * FROM \(table) WHERE name = \(bind: planet)")
+let planets = try db.raw("SELECT * FROM \(raw: table) WHERE name = \(bind: planet)")
     .all().wait()
 ```
 
