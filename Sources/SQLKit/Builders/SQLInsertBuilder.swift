@@ -46,29 +46,22 @@ public final class SQLInsertBuilder: SQLQueryBuilder, SQLReturningBuilder {
     public func models<E>(_ models: [E], prefix: String? = nil, keyEncodingStrategy: SQLQueryEncoder.KeyEncodingStrategy = .useDefaultKeys, nilEncodingStrategy: SQLQueryEncoder.NilEncodingStrategy = .default) throws -> Self where E: Encodable {
         var encoder = SQLQueryEncoder()
         encoder.keyEncodingStrategy = keyEncodingStrategy
+        encoder.nilEncodingStrategy = nilEncodingStrategy
         encoder.prefix = prefix
 
         for model in models {
             let row = try encoder.encode(model)
-
-            var columnNames = [String]()
             if self.insert.columns.isEmpty {
-                let columms = row.map {
-                    $0.0
-                }.map {
-                    SQLColumn($0, table: nil)
-                }
-                columnNames = row.map{$0.0}
-                self.insert.columns += columms
+                self.insert.columns += row.map { $0.0 }.map { SQLColumn($0, table: nil) }
             } else {
                 assert(
                     self.insert.columns.count == row.count,
-                    "Column count (\(self.insert.columns.count)) did not equal value count (\(row.count)). columns: \(columnNames) \n model: \(model)."
+                    "Column count (\(self.insert.columns.count)) did not equal value count (\(row.count)): \(model)."
                 )
             }
             self.insert.values.append(.init(row.map { $0.1 }))
         }
-
+        
         return self
     }
     
